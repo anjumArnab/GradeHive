@@ -79,14 +79,11 @@ class StudentForm extends StatelessWidget {
             ElevatedButton(
               onPressed: isLoading ? null : onSubmit,
               style: ElevatedButton.styleFrom(
-                minimumSize: const Size(double.infinity, 50),
+                backgroundColor: Colors.blueGrey,
+                foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(7),
-                  side: const BorderSide(color: Colors.black),
+                  borderRadius: BorderRadius.circular(5),
                 ),
-                elevation: 0,
-                backgroundColor: Colors.white,
-                foregroundColor: Colors.black,
               ),
               child:
                   isLoading

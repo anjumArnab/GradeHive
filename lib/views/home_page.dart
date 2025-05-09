@@ -112,14 +112,11 @@ class _HomePageState extends State<HomePage> {
                       ElevatedButton(
                         onPressed: _fetchStudents,
                         style: ElevatedButton.styleFrom(
-                          minimumSize: Size(double.maxFinite, 50),
+                          backgroundColor: Colors.blueGrey,
+                          foregroundColor: Colors.white,
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(7),
-                            side: const BorderSide(color: Colors.black),
+                            borderRadius: BorderRadius.circular(5),
                           ),
-                          elevation: 0,
-                          backgroundColor: Colors.white,
-                          foregroundColor: Colors.black,
                         ),
                         child: const Text('Retry'),
                       ),
