@@ -10,110 +10,85 @@ GradeHive is a lightweight Flutter app that uses **Google Sheets** as a backend 
 
 ---
 
-## Important Notes on CORS
-
-- **Google Apps Script does not allow setting custom headers like `Access-Control-Allow-Origin` directly.**
-- **CORS is handled automatically** when you deploy your script as a web app with the access set to:
-  > **Execute as:** Me (your account)  
-  > **Who has access:** Anyone, even anonymous
-- Your Flutter web app can send POST requests directly without needing extra CORS headers in the script.
-
----
-
-## Full `code.gs` Script
+## Script for `code.gs`
 
 ```javascript
-const SHEET_NAME = "Students";
+const SHEET_ID = "YOUR_SHEET_ID"; // Replace with your actual Sheet ID
+const SHEET_NAME = "Sheet1";      // Replace with your sheet name if different
 
-// GET request handler - GET not supported
 function doGet(e) {
-  return ContentService.createTextOutput("GET not supported. Use POST.")
-    .setMimeType(ContentService.MimeType.TEXT);
-}
+  const sheet = SpreadsheetApp.openById(SHEET_ID).getSheetByName(SHEET_NAME);
+  const values = sheet.getDataRange().getValues();
+  const data = [];
 
-// OPTIONS preflight handler for CORS
-function doOptions(e) {
-  // Return empty response, no headers needed
-  return ContentService.createTextOutput("");
-}
-
-// POST request handler
-function doPost(e) {
-  try {
-    const data = JSON.parse(e.postData.contents);
-    const action = data.action;
-
-    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_NAME);
-    if (!sheet) {
-      return createResponse({ error: "Sheet not found" });
-    }
-
-    let result;
-    switch (action) {
-      case "create":
-        result = createStudent(sheet, data);
-        break;
-      case "read":
-        result = readStudents(sheet);
-        break;
-      case "update":
-        result = updateStudent(sheet, data);
-        break;
-      case "delete":
-        result = deleteStudent(sheet, data);
-        break;
-      default:
-        result = { error: "Invalid action" };
-    }
-
-    return createResponse(result);
-
-  } catch (err) {
-    return createResponse({ error: err.toString() });
+  // Skip header
+  for (let i = 1; i < values.length; i++) {
+    const row = values[i];
+    data.push({
+      id: i, // ID based on row index (used for update/delete)
+      name: row[0],
+      age: row[1],
+      grade: row[2]
+    });
   }
-}
 
-// Helper to create JSON response
-function createResponse(data) {
   return ContentService.createTextOutput(JSON.stringify(data))
     .setMimeType(ContentService.MimeType.JSON);
 }
 
-// Create student
-function createStudent(sheet, data) {
-  sheet.appendRow([data.name, data.age, data.grade]);
-  return { success: true, message: "Student created", data: data };
-}
+function doPost(e) {
+  const action = e.parameter.action;
 
-// Read all students
-function readStudents(sheet) {
-  const rows = sheet.getDataRange().getValues();
-  const headers = rows[0];
-  const students = [];
-
-  for (let i = 1; i < rows.length; i++) {
-    let row = rows[i];
-    let student = {};
-    for (let j = 0; j < headers.length; j++) {
-      student[headers[j]] = row[j];
-    }
-    student["row"] = i + 1; // Keep track of row number for updates/deletes
-    students.push(student);
+  switch (action) {
+    case "create":
+      return createStudent(e);
+    case "update":
+      return updateStudent(e);
+    case "delete":
+      return deleteStudent(e);
+    default:
+      return ContentService.createTextOutput(JSON.stringify({ status: "ERROR", message: "Invalid action" }))
+        .setMimeType(ContentService.MimeType.JSON);
   }
-
-  return { success: true, data: students };
 }
 
-// Update student by row number
-function updateStudent(sheet, data) {
-  const row = data.row;
-  sheet.getRange(row, 1, 1, 3).setValues([[data.name, data.age, data.grade]]);
-  return { success: true, message: "Student updated", data: data };
+function createStudent(e) {
+  const name = e.parameter.name;
+  const age = e.parameter.age;
+  const grade = e.parameter.grade;
+
+  const sheet = SpreadsheetApp.openById(SHEET_ID).getSheetByName(SHEET_NAME);
+  sheet.appendRow([name, age, grade]);
+
+  return ContentService.createTextOutput(JSON.stringify({ status: "SUCCESS", message: "Student created" }))
+    .setMimeType(ContentService.MimeType.JSON);
 }
 
-// Delete student by row number
-function deleteStudent(sheet, data) {
-  const row = data.row;
-  sheet.deleteRow(row);
-  return { success: true, message: "Student deleted", row: row };
+function updateStudent(e) {
+  const id = parseInt(e.parameter.id); // Row number (starting from 1)
+  const name = e.parameter.name;
+  const age = e.parameter.age;
+  const grade = e.parameter.grade;
+
+  const sheet = SpreadsheetApp.openById(SHEET_ID).getSheetByName(SHEET_NAME);
+  const rowIndex = id + 1; // Account for header row
+
+  sheet.getRange(rowIndex, 1).setValue(name);
+  sheet.getRange(rowIndex, 2).setValue(age);
+  sheet.getRange(rowIndex, 3).setValue(grade);
+
+  return ContentService.createTextOutput(JSON.stringify({ status: "SUCCESS", message: "Student updated" }))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+function deleteStudent(e) {
+  const id = parseInt(e.parameter.id);
+
+  const sheet = SpreadsheetApp.openById(SHEET_ID).getSheetByName(SHEET_NAME);
+  const rowIndex = id + 1;
+
+  sheet.deleteRow(rowIndex);
+
+  return ContentService.createTextOutput(JSON.stringify({ status: "SUCCESS", message: "Student deleted" }))
+    .setMimeType(ContentService.MimeType.JSON);
 }
