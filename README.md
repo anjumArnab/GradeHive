@@ -1,14 +1,12 @@
 # GradeHive
 
-GradeHive is a lightweight Flutter app that uses **Google Sheets** as a backend database, with **Google Apps Script** providing a RESTful API interface.  
-This project demonstrates how to build a simple CRUD (Create, Read, Update, Delete) app by leveraging Google Sheets for data storage and Google Apps Script as the backend service.
+GradeHive is a lightweight Flutter app that uses **Google Sheets** as a backend database, with **Google Apps Script** providing a RESTful API interface.
 
 ## Technology Stack
 
 - **Flutter**: Client-side app for UI and API communication
 - **Google Sheets**: Cloud spreadsheet database for student records
 - **Google Apps Script**: Backend REST API layer deployed as a Web App
-- **JSON**: Data exchange format between Flutter and Apps Script
 
 ---
 
