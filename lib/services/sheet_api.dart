@@ -1,12 +1,11 @@
 import 'dart:convert';
 import 'dart:developer';
-
 import 'package:grade_hive/models/student.dart';
+import 'package:grade_hive/services/app_script_url.dart';
 import 'package:http/http.dart' as http;
 
 class SheetAPI {
-  static const String baseUrl =
-      'https://script.google.com/macros/s/AKfycbxRkiYM-qSjLHRsE79Ni9ZtfkUk2sqCDBPZZmBJ9YuTZVmmtIu1qJtdn7hrqVnD9kxhbA/exec';
+  static const String baseUrl = APP_SCRIPT_URL;
 
   // Create Student
   static Future<Student?> createStudent(Student student) async {
