@@ -119,5 +119,3 @@ function deleteStudent(sheet, data) {
   sheet.deleteRow(row);
   return { success: true, message: "Student deleted", row: row };
 }
-
-
