@@ -148,9 +148,7 @@ class _HomePageState extends State<HomePage> {
                     itemCount: students.length,
                     itemBuilder: (context, index) {
                       return GradeTile(
-                        name: students[index].name,
-                        title: students[index].name,
-                        subtitle: 'Grade: ${students[index].grade}',
+                        student: students[index],
                         onTap: () => _viewStudentDetails(index),
                         onEdit: () => _editStudent(index),
                         onDelete: () => _deleteStudent(index),

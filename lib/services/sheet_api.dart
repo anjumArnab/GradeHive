@@ -1,30 +1,31 @@
 import 'dart:convert';
 import 'dart:developer';
+import 'package:http/http.dart' as http;
 import 'package:grade_hive/models/student.dart';
 import 'package:grade_hive/services/app_script_url.dart';
-import 'package:http/http.dart' as http;
 
 class SheetAPI {
   static const String baseUrl = APP_SCRIPT_URL;
 
-  // Create Student
+  // CREATE
   static Future<Student?> createStudent(Student student) async {
     try {
       final response = await http.post(
         Uri.parse(baseUrl),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
+        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+        body: {
           'action': 'create',
           'name': student.name,
-          'age': student.age,
+          'age': student.age.toString(),
           'grade': student.grade,
-        }),
+        },
       );
 
       if (response.statusCode == 200) {
-        final responseData = jsonDecode(response.body);
-        // Assuming response returns the created student data
-        return Student.fromJson(responseData['data'] ?? responseData);
+        final data = jsonDecode(response.body);
+        if (data['success']) {
+          return Student.fromJson(data['data']);
+        }
       }
       return null;
     } catch (e) {
@@ -33,17 +34,16 @@ class SheetAPI {
     }
   }
 
-  // Read Students
+  // READ
   static Future<List<Student>?> getStudents() async {
     try {
       final response = await http.get(Uri.parse(baseUrl));
 
       if (response.statusCode == 200) {
-        final responseData = jsonDecode(response.body);
-        if (responseData['success'] == true) {
-          List<dynamic> studentsList = responseData['data'];
-          return studentsList
-              .map((student) => Student.fromJson(student))
+        final data = jsonDecode(response.body);
+        if (data['success']) {
+          return (data['data'] as List)
+              .map((e) => Student.fromJson(e))
               .toList();
         }
       }
@@ -54,48 +54,40 @@ class SheetAPI {
     }
   }
 
-  // Update Student
-  // IMPORTANT: you need to pass the row number (index in sheet) to update correctly
-  static Future<bool> updateStudent(int row, Student student) async {
+  // UPDATE
+  static Future<bool> updateStudent(Student student) async {
     try {
       final response = await http.post(
         Uri.parse(baseUrl),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
+        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+        body: {
           'action': 'update',
-          'row': row,
+          'id': student.id.toString(), // row index from the sheet
           'name': student.name,
-          'age': student.age,
+          'age': student.age.toString(),
           'grade': student.grade,
-        }),
+        },
       );
 
-      if (response.statusCode == 200) {
-        final responseData = jsonDecode(response.body);
-        return responseData['success'] == true;
-      }
-      return false;
+      final data = jsonDecode(response.body);
+      return data['success'] == true;
     } catch (e) {
       log("Error updating student: $e");
       return false;
     }
   }
 
-  // Delete Student
-  // Also needs row number
-  static Future<bool> deleteStudent(int row) async {
+  // DELETE
+  static Future<bool> deleteStudent(int id) async {
     try {
       final response = await http.post(
         Uri.parse(baseUrl),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'action': 'delete', 'row': row}),
+        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+        body: {'action': 'delete', 'id': id.toString()},
       );
 
-      if (response.statusCode == 200) {
-        final responseData = jsonDecode(response.body);
-        return responseData['success'] == true;
-      }
-      return false;
+      final data = jsonDecode(response.body);
+      return data['success'] == true;
     } catch (e) {
       log("Error deleting student: $e");
       return false;

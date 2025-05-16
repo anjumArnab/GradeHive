@@ -1,27 +1,28 @@
 class Student {
+  final int? id;
   final String name;
-  final String age;
+  final int age;
   final String grade;
-  final int? row;
 
   Student({
+    this.id,
     required this.name,
     required this.age,
     required this.grade,
-    this.row,
   });
 
-  factory Student.fromJson(Map<String, dynamic> json) => Student(
-    name: json['name'],
-    age: json['age'],
-    grade: json['grade'],
-    row: json['row'],
-  );
+  factory Student.fromJson(Map<String, dynamic> json) {
+    return Student(
+      id: json['id'],
+      name: json['name'],
+      age: int.parse(json['age'].toString()),
+      grade: json['grade'],
+    );
+  }
 
-  Map<String, dynamic> toJson() => {
-    'name': name,
-    'age': age,
-    'grade': grade,
-    if (row != null) 'row': row,
-  };
+  get row => null;
+
+  Map<String, dynamic> toJson() {
+    return {'id': id, 'name': name, 'age': age, 'grade': grade};
+  }
 }
