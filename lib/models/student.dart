@@ -15,7 +15,10 @@ class Student {
     return Student(
       id: json['id'],
       name: json['name'],
-      age: int.parse(json['age'].toString()),
+      age:
+          json['age'] is int
+              ? json['age']
+              : int.tryParse(json['age'].toString()) ?? 0,
       grade: json['grade'],
     );
   }

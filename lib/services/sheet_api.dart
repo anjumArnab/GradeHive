@@ -23,8 +23,8 @@ class SheetAPI {
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        if (data['success']) {
-          return Student.fromJson(data['data']);
+        if (data['status'] == 'SUCCESS') {
+          return student;
         }
       }
       return null;
@@ -40,12 +40,9 @@ class SheetAPI {
       final response = await http.get(Uri.parse(baseUrl));
 
       if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        if (data['success']) {
-          return (data['data'] as List)
-              .map((e) => Student.fromJson(e))
-              .toList();
-        }
+        final List<dynamic> data = jsonDecode(response.body);
+
+        return data.map((json) => Student.fromJson(json)).toList();
       }
       return null;
     } catch (e) {
@@ -62,15 +59,18 @@ class SheetAPI {
         headers: {'Content-Type': 'application/x-www-form-urlencoded'},
         body: {
           'action': 'update',
-          'id': student.id.toString(), // row index from the sheet
+          'id': student.id.toString(),
           'name': student.name,
           'age': student.age.toString(),
           'grade': student.grade,
         },
       );
 
-      final data = jsonDecode(response.body);
-      return data['success'] == true;
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return data['status'] == 'SUCCESS';
+      }
+      return false;
     } catch (e) {
       log("Error updating student: $e");
       return false;
@@ -78,16 +78,19 @@ class SheetAPI {
   }
 
   // DELETE
-  static Future<bool> deleteStudent(int id) async {
+  static Future<bool> deleteStudent(Student student) async {
     try {
       final response = await http.post(
         Uri.parse(baseUrl),
         headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-        body: {'action': 'delete', 'id': id.toString()},
+        body: {'action': 'delete', 'id': student.id.toString()},
       );
 
-      final data = jsonDecode(response.body);
-      return data['success'] == true;
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return data['status'] == 'SUCCESS';
+      }
+      return false;
     } catch (e) {
       log("Error deleting student: $e");
       return false;
