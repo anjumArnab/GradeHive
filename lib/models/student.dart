@@ -1,21 +1,27 @@
 class Student {
-  String name;
-  int age;
-  String grade;
+  final String name;
+  final String age;
+  final String grade;
+  final int? row;
 
-  Student({required this.name, required this.age, required this.grade});
+  Student({
+    required this.name,
+    required this.age,
+    required this.grade,
+    this.row,
+  });
 
-  // Factory constructor to create a Student from JSON
-  factory Student.fromJson(Map<String, dynamic> json) {
-    return Student(
-      name: json['name'] ?? '',
-      age: json['age'] ?? 0,
-      grade: json['grade'] ?? '',
-    );
-  }
+  factory Student.fromJson(Map<String, dynamic> json) => Student(
+    name: json['name'],
+    age: json['age'],
+    grade: json['grade'],
+    row: json['row'],
+  );
 
-  // Method to convert Student instance to JSON
-  Map<String, dynamic> toJson() {
-    return {'name': name, 'age': age, 'grade': grade};
-  }
+  Map<String, dynamic> toJson() => {
+    'name': name,
+    'age': age,
+    'grade': grade,
+    if (row != null) 'row': row,
+  };
 }

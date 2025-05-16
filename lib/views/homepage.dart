@@ -76,7 +76,7 @@ class _HomePageState extends State<HomePage> {
         isLoading = true;
       });
 
-      bool success = await SheetAPI.deleteStudent(student.name);
+      bool success = await SheetAPI.deleteStudent(student.row!);
 
       setState(() {
         isLoading = false;

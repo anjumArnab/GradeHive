@@ -61,7 +61,7 @@ class _StudentDetailsState extends State<StudentDetails> {
         isLoading = true;
       });
 
-      final success = await SheetAPI.deleteStudent(student.name);
+      final success = await SheetAPI.deleteStudent(student.row!);
 
       setState(() {
         isLoading = false;

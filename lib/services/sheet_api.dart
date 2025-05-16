@@ -1,11 +1,12 @@
 import 'dart:convert';
 import 'dart:developer';
+
 import 'package:grade_hive/models/student.dart';
 import 'package:http/http.dart' as http;
 
 class SheetAPI {
   static const String baseUrl =
-      'https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec';
+      'https://script.google.com/macros/s/AKfycbxRkiYM-qSjLHRsE79Ni9ZtfkUk2sqCDBPZZmBJ9YuTZVmmtIu1qJtdn7hrqVnD9kxhbA/exec';
 
   // Create Student
   static Future<Student?> createStudent(Student student) async {
@@ -13,11 +14,18 @@ class SheetAPI {
       final response = await http.post(
         Uri.parse(baseUrl),
         headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'action': 'create', ...student.toJson()}),
+        body: jsonEncode({
+          'action': 'create',
+          'name': student.name,
+          'age': student.age,
+          'grade': student.grade,
+        }),
       );
 
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        return Student.fromJson(jsonDecode(response.body));
+      if (response.statusCode == 200) {
+        final responseData = jsonDecode(response.body);
+        // Assuming response returns the created student data
+        return Student.fromJson(responseData['data'] ?? responseData);
       }
       return null;
     } catch (e) {
@@ -29,15 +37,16 @@ class SheetAPI {
   // Read Students
   static Future<List<Student>?> getStudents() async {
     try {
-      final response = await http.post(
-        Uri.parse(baseUrl),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'action': 'read'}),
-      );
+      final response = await http.get(Uri.parse(baseUrl));
 
       if (response.statusCode == 200) {
-        List<dynamic> data = jsonDecode(response.body);
-        return data.map((student) => Student.fromJson(student)).toList();
+        final responseData = jsonDecode(response.body);
+        if (responseData['success'] == true) {
+          List<dynamic> studentsList = responseData['data'];
+          return studentsList
+              .map((student) => Student.fromJson(student))
+              .toList();
+        }
       }
       return null;
     } catch (e) {
@@ -47,62 +56,47 @@ class SheetAPI {
   }
 
   // Update Student
-  static Future<Student?> updateStudent(String name, Student student) async {
+  // IMPORTANT: you need to pass the row number (index in sheet) to update correctly
+  static Future<bool> updateStudent(int row, Student student) async {
     try {
       final response = await http.post(
         Uri.parse(baseUrl),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'action': 'update',
-          'searchName':
-              name, // Using name as identifier for which student to update
-          ...student.toJson(),
+          'row': row,
+          'name': student.name,
+          'age': student.age,
+          'grade': student.grade,
         }),
       );
 
       if (response.statusCode == 200) {
-        return Student.fromJson(jsonDecode(response.body));
+        final responseData = jsonDecode(response.body);
+        return responseData['success'] == true;
       }
-      return null;
+      return false;
     } catch (e) {
       log("Error updating student: $e");
-      return null;
-    }
-  }
-
-  // Update Student Partially
-  static Future<bool> updateStudentPartially(
-    String name,
-    Map<String, dynamic> updatedData,
-  ) async {
-    try {
-      final response = await http.post(
-        Uri.parse(baseUrl),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'action': 'updatePartial',
-          'name': name,
-          ...updatedData,
-        }),
-      );
-
-      return response.statusCode == 200;
-    } catch (e) {
-      log("Error updating student partially: $e");
       return false;
     }
   }
 
   // Delete Student
-  static Future<bool> deleteStudent(String name) async {
+  // Also needs row number
+  static Future<bool> deleteStudent(int row) async {
     try {
       final response = await http.post(
         Uri.parse(baseUrl),
         headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'action': 'delete', 'name': name}),
+        body: jsonEncode({'action': 'delete', 'row': row}),
       );
 
-      return response.statusCode == 200 || response.statusCode == 204;
+      if (response.statusCode == 200) {
+        final responseData = jsonDecode(response.body);
+        return responseData['success'] == true;
+      }
+      return false;
     } catch (e) {
       log("Error deleting student: $e");
       return false;
