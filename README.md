@@ -13,49 +13,65 @@ GradeHive is a lightweight Flutter app that uses **Google Sheets** as a backend 
 ## Script for `code.gs`
 
 ```javascript
-const SHEET_ID = "YOUR_SHEET_ID"; // Replace with your actual Sheet ID
-const SHEET_NAME = "Sheet1";      // Replace with your sheet name if different
+const SHEET_ID = "";
+const SHEET_NAME = "";
 
 function doGet(e) {
-  const sheet = SpreadsheetApp.openById(SHEET_ID).getSheetByName(SHEET_NAME);
-  const values = sheet.getDataRange().getValues();
-  const data = [];
+  try {
+    const sheet = SpreadsheetApp.openById(SHEET_ID).getSheetByName(SHEET_NAME);
+    const values = sheet.getDataRange().getValues();
+    const data = [];
 
-  // Skip header
-  for (let i = 1; i < values.length; i++) {
-    const row = values[i];
-    data.push({
-      id: i, // ID based on row index (used for update/delete)
-      name: row[0],
-      age: row[1],
-      grade: row[2]
-    });
-  }
+    // Skip header
+    for (let i = 1; i < values.length; i++) {
+      const row = values[i];
+      data.push({
+        id: i, // ID based on row index (used for update/delete)
+        name: row[0]?.toString() || "",
+        age: parseInt(row[1]) || 0,
+        grade: row[2]?.toString() || ""
+      });
+    }
 
-  return ContentService.createTextOutput(JSON.stringify(data))
+    return ContentService.createTextOutput(JSON.stringify(data))
+      .setMimeType(ContentService.MimeType.JSON);
+  } catch (error) {
+    return ContentService.createTextOutput(JSON.stringify({ 
+      error: error.toString(), 
+      message: "Error retrieving data" 
+    }))
     .setMimeType(ContentService.MimeType.JSON);
+  }
 }
 
 function doPost(e) {
-  const action = e.parameter.action;
+  try {
+    const action = e.parameter.action;
 
-  switch (action) {
-    case "create":
-      return createStudent(e);
-    case "update":
-      return updateStudent(e);
-    case "delete":
-      return deleteStudent(e);
-    default:
-      return ContentService.createTextOutput(JSON.stringify({ status: "ERROR", message: "Invalid action" }))
-        .setMimeType(ContentService.MimeType.JSON);
+    switch (action) {
+      case "create":
+        return createStudent(e);
+      case "update":
+        return updateStudent(e);
+      case "delete":
+        return deleteStudent(e);
+      default:
+        return ContentService.createTextOutput(JSON.stringify({ status: "ERROR", message: "Invalid action" }))
+          .setMimeType(ContentService.MimeType.JSON);
+    }
+  } catch (error) {
+    return ContentService.createTextOutput(JSON.stringify({ 
+      status: "ERROR", 
+      message: error.toString() 
+    }))
+    .setMimeType(ContentService.MimeType.JSON);
   }
 }
 
 function createStudent(e) {
-  const name = e.parameter.name;
-  const age = e.parameter.age;
-  const grade = e.parameter.grade;
+  const name = e.parameter.name || "";
+  const age = parseInt(e.parameter.age) || 0;
+  const grade = e.parameter.grade || "";
 
   const sheet = SpreadsheetApp.openById(SHEET_ID).getSheetByName(SHEET_NAME);
   sheet.appendRow([name, age, grade]);
@@ -66,9 +82,14 @@ function createStudent(e) {
 
 function updateStudent(e) {
   const id = parseInt(e.parameter.id); // Row number (starting from 1)
-  const name = e.parameter.name;
-  const age = e.parameter.age;
-  const grade = e.parameter.grade;
+  if (isNaN(id)) {
+    return ContentService.createTextOutput(JSON.stringify({ status: "ERROR", message: "Invalid ID" }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+  
+  const name = e.parameter.name || "";
+  const age = parseInt(e.parameter.age) || 0;
+  const grade = e.parameter.grade || "";
 
   const sheet = SpreadsheetApp.openById(SHEET_ID).getSheetByName(SHEET_NAME);
   const rowIndex = id + 1; // Account for header row
@@ -83,6 +104,10 @@ function updateStudent(e) {
 
 function deleteStudent(e) {
   const id = parseInt(e.parameter.id);
+  if (isNaN(id)) {
+    return ContentService.createTextOutput(JSON.stringify({ status: "ERROR", message: "Invalid ID" }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
 
   const sheet = SpreadsheetApp.openById(SHEET_ID).getSheetByName(SHEET_NAME);
   const rowIndex = id + 1;
