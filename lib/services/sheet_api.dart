@@ -40,9 +40,24 @@ class SheetAPI {
       final response = await http.get(Uri.parse(baseUrl));
 
       if (response.statusCode == 200) {
+        // Log the raw response for debugging
+        log("Raw API response: ${response.body}");
+
         final List<dynamic> data = jsonDecode(response.body);
 
-        return data.map((json) => Student.fromJson(json)).toList();
+        // More robust parsing with additional logging
+        List<Student> students = [];
+        for (var json in data) {
+          try {
+            log("Processing student JSON: $json");
+            students.add(Student.fromJson(json));
+          } catch (e) {
+            log("Error parsing student: $e");
+            // Continue with the next item instead of failing completely
+          }
+        }
+
+        return students;
       }
       return null;
     } catch (e) {
@@ -52,14 +67,14 @@ class SheetAPI {
   }
 
   // UPDATE
-  static Future<bool> updateStudent(Student student) async {
+  static Future<bool> updateStudent(int id, Student student) async {
     try {
       final response = await http.post(
         Uri.parse(baseUrl),
         headers: {'Content-Type': 'application/x-www-form-urlencoded'},
         body: {
           'action': 'update',
-          'id': student.id.toString(),
+          'id': id.toString(),
           'name': student.name,
           'age': student.age.toString(),
           'grade': student.grade,
@@ -78,12 +93,12 @@ class SheetAPI {
   }
 
   // DELETE
-  static Future<bool> deleteStudent(Student student) async {
+  static Future<bool> deleteStudent(int id) async {
     try {
       final response = await http.post(
         Uri.parse(baseUrl),
         headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-        body: {'action': 'delete', 'id': student.id.toString()},
+        body: {'action': 'delete', 'id': id.toString()},
       );
 
       if (response.statusCode == 200) {
