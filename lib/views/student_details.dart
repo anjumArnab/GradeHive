@@ -22,6 +22,7 @@ class _StudentDetailsState extends State<StudentDetails> {
     super.initState();
     // Create a copy of the student to avoid modifying the original
     student = Student(
+      id: widget.student.id,
       name: widget.student.name,
       age: widget.student.age,
       grade: widget.student.grade,
@@ -29,6 +30,13 @@ class _StudentDetailsState extends State<StudentDetails> {
   }
 
   Future<void> _deleteStudent() async {
+    if (student.id == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Cannot delete student without ID')),
+      );
+      return;
+    }
+
     // Show confirmation dialog
     bool confirm =
         await showDialog(
@@ -61,7 +69,7 @@ class _StudentDetailsState extends State<StudentDetails> {
         isLoading = true;
       });
 
-      final success = await SheetAPI.deleteStudent(student.row!);
+      final success = await SheetAPI.deleteStudent(student.id!);
 
       setState(() {
         isLoading = false;

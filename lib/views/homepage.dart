@@ -47,6 +47,13 @@ class _HomePageState extends State<HomePage> {
   void _deleteStudent(int index) async {
     final student = students[index];
 
+    if (student.id == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Cannot delete student without ID')),
+      );
+      return;
+    }
+
     // Show confirmation dialog
     bool confirm =
         await showDialog(
@@ -76,7 +83,7 @@ class _HomePageState extends State<HomePage> {
         isLoading = true;
       });
 
-      bool success = await SheetAPI.deleteStudent(student.row!);
+      bool success = await SheetAPI.deleteStudent(student.id!);
 
       setState(() {
         isLoading = false;

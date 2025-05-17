@@ -18,7 +18,7 @@ class GradeTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListTile(
-      leading: CircleAvatar(child: Text(student.name)),
+      leading: CircleAvatar(child: Text(student.name.substring(0, 2))),
       title: Text(student.name, style: TextStyle(color: Colors.black)),
       subtitle: Text(student.grade, style: TextStyle(color: Colors.grey)),
       onTap: onTap,

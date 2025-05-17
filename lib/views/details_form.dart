@@ -80,16 +80,23 @@ class _DetailsFormState extends State<DetailsForm> {
     final age = int.tryParse(_ageController.text.trim()) ?? 0;
     final grade = _gradeController.text.trim();
 
-    final student = Student(name: name, age: age, grade: grade);
-
     bool success = false;
 
-    if (isEditMode) {
-      // Update existing student
-      final updatedStudent = await SheetAPI.updateStudent(widget.student!.row!);
-      success = updatedStudent;
+    if (isEditMode && widget.student?.id != null) {
+      // Create updated student with same ID
+      final updatedStudent = Student(
+        id: widget.student!.id,
+        name: name,
+        age: age,
+        grade: grade,
+      );
+      success = await SheetAPI.updateStudent(
+        widget.student!.id!,
+        updatedStudent,
+      );
     } else {
       // Create new student
+      final student = Student(name: name, age: age, grade: grade);
       final createdStudent = await SheetAPI.createStudent(student);
       success = createdStudent != null;
     }
