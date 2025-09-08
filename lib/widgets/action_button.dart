@@ -6,7 +6,6 @@ class ActionButton extends StatelessWidget {
   final Color backgroundColor;
   final EdgeInsetsGeometry padding;
   final double borderRadius;
-  final double? width; // Add width parameter
 
   const ActionButton({
     super.key,
@@ -15,13 +14,12 @@ class ActionButton extends StatelessWidget {
     this.backgroundColor = Colors.deepPurple,
     this.padding = const EdgeInsets.symmetric(vertical: 16),
     this.borderRadius = 8.0,
-    this.width, // Optional width parameter
   });
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: width, // Use provided width or let it size to content
+      width: double.infinity,
       child: ElevatedButton(
         onPressed: onPressed,
         style: ElevatedButton.styleFrom(
