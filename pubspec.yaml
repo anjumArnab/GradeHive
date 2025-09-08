@@ -1,5 +1,5 @@
 name: grade_hive
-description: "A new Flutter project."
+description: ""
 
 publish_to: 'none'
 version: 1.0.0+1
@@ -14,6 +14,7 @@ dependencies:
   cupertino_icons: ^1.0.8
   http: ^1.4.0
   google_fonts: ^6.2.1
+  provider: ^6.1.5+1
 
 dev_dependencies:
   flutter_test:
