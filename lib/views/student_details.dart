@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:grade_hive/models/student.dart';
-import 'package:grade_hive/services/sheet_api.dart';
-import 'package:grade_hive/widgets/action_button.dart';
+import 'package:provider/provider.dart';
+import '../models/student.dart';
+import '../providers/student_provider.dart';
+import '../widgets/action_button.dart';
 import 'details_form.dart';
 
 class StudentDetails extends StatefulWidget {
@@ -15,7 +16,6 @@ class StudentDetails extends StatefulWidget {
 
 class _StudentDetailsState extends State<StudentDetails> {
   late Student student;
-  bool isLoading = false;
 
   @override
   void initState() {
@@ -65,15 +65,8 @@ class _StudentDetailsState extends State<StudentDetails> {
         false;
 
     if (confirm) {
-      setState(() {
-        isLoading = true;
-      });
-
-      final success = await SheetAPI.deleteStudent(student.id!);
-
-      setState(() {
-        isLoading = false;
-      });
+      final provider = context.read<StudentProvider>();
+      final success = await provider.deleteStudent(student.id!);
 
       if (success) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -82,7 +75,9 @@ class _StudentDetailsState extends State<StudentDetails> {
         Navigator.pop(context); // Return to previous screen
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Failed to delete student')),
+          SnackBar(
+            content: Text(provider.errorMessage ?? 'Failed to delete student'),
+          ),
         );
       }
     }
@@ -106,64 +101,70 @@ class _StudentDetailsState extends State<StudentDetails> {
         backgroundColor: Colors.deepPurple,
         title: const Text('Student Details'),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.delete),
-            onPressed: isLoading ? null : _deleteStudent,
+          Consumer<StudentProvider>(
+            builder: (context, provider, child) {
+              return IconButton(
+                icon: const Icon(Icons.delete),
+                onPressed: provider.isLoading ? null : _deleteStudent,
+              );
+            },
           ),
         ],
       ),
-      body:
-          isLoading
-              ? const Center(
-                child: CircularProgressIndicator(color: Colors.deepPurple),
-              )
-              : SingleChildScrollView(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      CircleAvatar(
-                        radius: 50,
-                        backgroundColor: Colors.deepPurple.shade100,
-                        child: const Icon(
-                          Icons.person,
-                          size: 60,
-                          color: Colors.deepPurple,
-                        ),
-                      ),
-                      const SizedBox(height: 24),
-                      Text(
-                        student.name,
-                        style: const TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: Colors.grey.shade100,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Column(
-                          children: [
-                            _buildInfoRow('Age', student.age.toString()),
-                            const Divider(),
-                            _buildInfoRow('Grade', student.grade),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 32),
-                      ActionButton(
-                        label: 'Edit Details',
-                        onPressed: _editStudent,
-                      ),
-                    ],
+      body: Consumer<StudentProvider>(
+        builder: (context, provider, child) {
+          if (provider.isLoading) {
+            return const Center(
+              child: CircularProgressIndicator(color: Colors.deepPurple),
+            );
+          }
+
+          return SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  CircleAvatar(
+                    radius: 50,
+                    backgroundColor: Colors.deepPurple.shade100,
+                    child: const Icon(
+                      Icons.person,
+                      size: 60,
+                      color: Colors.deepPurple,
+                    ),
                   ),
-                ),
+                  const SizedBox(height: 24),
+                  Text(
+                    student.name,
+                    style: const TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade100,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Column(
+                      children: [
+                        _buildInfoRow('Age', student.age.toString()),
+                        const Divider(),
+                        _buildInfoRow('Grade', student.grade),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+                  ActionButton(label: 'Edit Details', onPressed: _editStudent),
+                ],
               ),
+            ),
+          );
+        },
+      ),
     );
   }
 

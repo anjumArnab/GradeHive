@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:grade_hive/services/sheet_api.dart';
-import 'package:grade_hive/models/student.dart';
+import 'package:provider/provider.dart';
+import '../providers/student_provider.dart';
+import '../models/student.dart';
 import '../widgets/action_button.dart';
 import '../widgets/custom_text_field.dart';
 
@@ -19,7 +20,6 @@ class _DetailsFormState extends State<DetailsForm> {
   final TextEditingController _gradeController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
 
-  bool isLoading = false;
   bool isEditMode = false;
 
   @override
@@ -72,10 +72,7 @@ class _DetailsFormState extends State<DetailsForm> {
       return;
     }
 
-    setState(() {
-      isLoading = true;
-    });
-
+    final provider = context.read<StudentProvider>();
     final name = _nameController.text.trim();
     final age = int.tryParse(_ageController.text.trim()) ?? 0;
     final grade = _gradeController.text.trim();
@@ -90,20 +87,15 @@ class _DetailsFormState extends State<DetailsForm> {
         age: age,
         grade: grade,
       );
-      success = await SheetAPI.updateStudent(
+      success = await provider.updateStudent(
         widget.student!.id!,
         updatedStudent,
       );
     } else {
       // Create new student
       final student = Student(name: name, age: age, grade: grade);
-      final createdStudent = await SheetAPI.createStudent(student);
-      success = createdStudent != null;
+      success = await provider.createStudent(student);
     }
-
-    setState(() {
-      isLoading = false;
-    });
 
     if (success) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -121,9 +113,10 @@ class _DetailsFormState extends State<DetailsForm> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            isEditMode
-                ? 'Failed to update student'
-                : 'Failed to create student',
+            provider.errorMessage ??
+                (isEditMode
+                    ? 'Failed to update student'
+                    : 'Failed to create student'),
           ),
           backgroundColor: Colors.red,
         ),
@@ -138,51 +131,56 @@ class _DetailsFormState extends State<DetailsForm> {
         backgroundColor: Colors.deepPurple,
         title: Text(isEditMode ? 'Edit Student' : 'Add Student'),
       ),
-      body:
-          isLoading
-              ? const Center(
-                child: CircularProgressIndicator(color: Colors.deepPurple),
-              )
-              : SingleChildScrollView(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Form(
-                    key: _formKey,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        CustomTextField(
-                          controller: _nameController,
-                          hintText: 'Student name',
-                          labelText: 'Name',
-                          validator: _validateRequired,
-                          enabled: !isEditMode,
-                        ),
-                        const SizedBox(height: 16),
-                        CustomTextField(
-                          controller: _ageController,
-                          hintText: 'Student age',
-                          labelText: 'Age',
-                          keyboardType: TextInputType.number,
-                          validator: _validateAge,
-                        ),
-                        const SizedBox(height: 16),
-                        CustomTextField(
-                          controller: _gradeController,
-                          hintText: 'Student grade',
-                          labelText: 'Grade',
-                          validator: _validateRequired,
-                        ),
-                        const SizedBox(height: 24),
-                        ActionButton(
-                          label: isEditMode ? 'Update' : 'Save',
-                          onPressed: _saveStudent,
-                        ),
-                      ],
+      body: Consumer<StudentProvider>(
+        builder: (context, provider, child) {
+          if (provider.isLoading) {
+            return const Center(
+              child: CircularProgressIndicator(color: Colors.deepPurple),
+            );
+          }
+
+          return SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    CustomTextField(
+                      controller: _nameController,
+                      hintText: 'Student name',
+                      labelText: 'Name',
+                      validator: _validateRequired,
+                      enabled: !isEditMode,
                     ),
-                  ),
+                    const SizedBox(height: 16),
+                    CustomTextField(
+                      controller: _ageController,
+                      hintText: 'Student age',
+                      labelText: 'Age',
+                      keyboardType: TextInputType.number,
+                      validator: _validateAge,
+                    ),
+                    const SizedBox(height: 16),
+                    CustomTextField(
+                      controller: _gradeController,
+                      hintText: 'Student grade',
+                      labelText: 'Grade',
+                      validator: _validateRequired,
+                    ),
+                    const SizedBox(height: 24),
+                    ActionButton(
+                      label: isEditMode ? 'Update' : 'Save',
+                      onPressed: _saveStudent,
+                    ),
+                  ],
                 ),
               ),
+            ),
+          );
+        },
+      ),
     );
   }
 }
