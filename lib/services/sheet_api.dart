@@ -7,7 +7,6 @@ import 'package:grade_hive/services/app_script_url.dart';
 class SheetAPI {
   static const String baseUrl = APP_SCRIPT_URL;
 
-  // CREATE
   static Future<Student?> createStudent(Student student) async {
     try {
       final response = await http.post(
