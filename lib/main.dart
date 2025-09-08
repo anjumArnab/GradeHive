@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:grade_hive/views/homepage.dart';
+import 'package:provider/provider.dart';
+import '../views/homepage.dart';
+import '../providers/student_provider.dart';
 
 void main() {
   runApp(const GradeHive());
@@ -11,14 +13,17 @@ class GradeHive extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'GradeHive',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        textTheme: GoogleFonts.poppinsTextTheme(),
-        primarySwatch: Colors.deepPurple,
+    return ChangeNotifierProvider(
+      create: (context) => StudentProvider(),
+      child: MaterialApp(
+        title: 'GradeHive',
+        debugShowCheckedModeBanner: false,
+        theme: ThemeData(
+          textTheme: GoogleFonts.poppinsTextTheme(),
+          primarySwatch: Colors.deepPurple,
+        ),
+        home: const HomePage(),
       ),
-      home: const HomePage(),
     );
   }
 }
