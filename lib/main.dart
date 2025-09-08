@@ -19,6 +19,7 @@ class GradeHive extends StatelessWidget {
         title: 'GradeHive',
         debugShowCheckedModeBanner: false,
         theme: ThemeData(
+          scaffoldBackgroundColor: Colors.white,
           textTheme: GoogleFonts.poppinsTextTheme(),
           primarySwatch: Colors.deepPurple,
         ),
