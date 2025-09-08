@@ -10,6 +10,11 @@ GradeHive is a lightweight Flutter app that uses **Google Sheets** as a backend 
 
 ---
 
+## Screenshots
+![Home](assets/t01.png)
+![Student Details](assets/t02.png)
+![Detail Form](assets/t03.png)
+
 ## Script for `code.gs`
 
 ```javascript
